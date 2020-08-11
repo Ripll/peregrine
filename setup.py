@@ -9,10 +9,6 @@ setup(
     author='Ward Bradt',
     author_email='wardbradt5@gmail.com',
     packages=find_packages(),
-    install_requires=['networkx',
-                      'numpy',
-                      'ccxt',
-                      'web3'],
     license='MIT',
     url='https://github.com/Stakedllc/peregrine/',
 )
