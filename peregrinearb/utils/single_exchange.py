@@ -67,10 +67,10 @@ async def load_exchange_graph(exchange, name=True, fees=True, suppress=None, dep
     adapter.debug('Initialized empty graph with exchange_name and timestamp attributes')
 
     async def add_edges():
-        tasks = [_add_weighted_edge_to_graph(exchange, market_name, graph, log=True, fees=fees,
-                                             suppress=suppress, ticker=ticker, depth=depth, )
-                 for market_name, ticker in tickers.items()]
-        await asyncio.wait(tasks)
+        for market_name, ticker in tickers.items():
+            await _add_weighted_edge_to_graph(exchange, market_name, graph, log=True, fees=fees,
+                                              suppress=suppress, ticker=ticker, depth=depth, )
+
 
     if fees:
         for i in range(20):
@@ -184,6 +184,7 @@ async def _add_weighted_edge_to_graph(exchange: ccxt.Exchange, market_name: str,
     # Exchanges give asks and bids as either 0 or None when they do not exist.
     # todo: should we account for exchanges upon which an ask exists but a bid does not (and vice versa)? Would this
     # cause bugs?
+    
     if ask_rate == 0 or bid_rate == 0 or ask_rate is None or bid_rate is None:
         adapter.warning('Market is unavailable at this time. It will not be included in the graph.',
                         market=market_name)

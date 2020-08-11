@@ -44,7 +44,7 @@ def create_multi_exchange_graph(exchanges: list, digraph=False):
     return graph
 
 
-def create_weighted_multi_exchange_digraph(exchanges: list, name=True, log=False, fees=False, suppress=None):
+async def create_weighted_multi_exchange_digraph(exchanges: list, name=True, log=False, fees=False, suppress=None):
     """
     Not optimized (in favor of readability). There is multiple iterations over exchanges.
     """
@@ -60,8 +60,9 @@ def create_weighted_multi_exchange_digraph(exchanges: list, name=True, log=False
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.get_running_loop()
-    futures = [asyncio.ensure_future(exchange_dict['object'].load_markets()) for exchange_dict in exchanges]
-    loop.run_until_complete(asyncio.gather(*futures))
+    #futures = [loop.create_task(exchange_dict['object'].load_markets()) for exchange_dict in exchanges]
+    for exchange_dict in exchanges:
+        await exchange_dict['object'].load_markets()
 
     if fees:
         for exchange_dict in exchanges:
@@ -79,8 +80,11 @@ def create_weighted_multi_exchange_digraph(exchanges: list, name=True, log=False
             exchange_dict['fee'] = 0
 
     graph = nx.MultiDiGraph()
-    futures = [_add_exchange_to_multi_digraph(graph, exchange, log=log, suppress=suppress) for exchange in exchanges]
-    loop.run_until_complete(asyncio.gather(*futures))
+    #futures = [loop.create_task(_add_exchange_to_multi_digraph(graph, exchange, log=log, suppress=suppress)) for exchange in exchanges]
+    for exchange in exchanges:
+        await _add_exchange_to_multi_digraph(graph, exchange, log=log, suppress=suppress)
+
+    #loop.run_until_complete(asyncio.gather(*futures))
     return graph
 
 

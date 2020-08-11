@@ -14,7 +14,7 @@ class ExchangeNotInCollectionsError(Exception):
                                                             .format(market_ticker))
 
 
-def print_profit_opportunity_for_path(graph, path, round_to=10**-8, depth=False, starting_amount=100):
+def print_profit_opportunity_for_path(graph, path, round_to=8, depth=False, starting_amount=100):
     if not path:
         return
 

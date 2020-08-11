@@ -33,8 +33,17 @@ __all__ = [
 
 
 class OpportunityFinder:
-
     def __init__(self, market_name, exchanges=None, name=True, invocation_id=0):
+        self.market_name = market_name
+        self.exchanges = exchanges
+        self.name = name
+        self.invocation_id = invocation_id
+
+    async def init(self):
+        market_name = self.market_name
+        exchanges = self.exchanges
+        name = self.name
+        invocation_id = self.invocation_id
         """
         An object of type OpportunityFinder finds the largest price disparity between exchanges for a given
         cryptocurrency market by finding the exchange with the lowest market ask price and the exchange with the
@@ -46,10 +55,10 @@ class OpportunityFinder:
 
         if exchanges is None:
             self.adapter.warning('Parameter name\'s being false has no effect.')
-            exchanges = get_exchanges_for_market(market_name)
+            exchanges = await get_exchanges_for_market(market_name)
 
         if name:
-            exchanges = [getattr(ccxt, exchange_id)() for exchange_id in exchanges]
+            exchanges = [getattr(ccxt, exchange_id)() for exchange_id in exchanges[market_name]]
 
         self.exchange_list = exchanges
         self.market_name = market_name
@@ -85,12 +94,14 @@ class OpportunityFinder:
         ask = ticker['ask']
         bid = ticker['bid']
 
-        if self.highest_bid['price'] < bid:
-            self.highest_bid['price'] = bid
-            self.highest_bid['exchange'] = exchange
-        if ask < self.lowest_ask['price']:
-            self.lowest_ask['price'] = ask
-            self.lowest_ask['exchange'] = exchange
+        if bid is not None:
+            if self.highest_bid['price'] < bid:
+                self.highest_bid['price'] = bid
+                self.highest_bid['exchange'] = exchange
+        if ask is not None:
+            if ask < self.lowest_ask['price']:
+                self.lowest_ask['price'] = ask
+                self.lowest_ask['exchange'] = exchange
         self.adapter.info('Checked if exchange qualifies for the highest bid or lowest ask for market',
                           exchange=exchange.id, symbol=self.market_name)
 
@@ -322,6 +333,7 @@ def get_opportunities_for_collection(exchanges, collections, name=True):
 async def get_opportunity_for_market(ticker, exchanges=None, name=True, invocation_id=0):
     file_logger.info('Invocation#{} - Finding lowest ask and highest bid for {}'.format(invocation_id, ticker))
     finder = OpportunityFinder(ticker, exchanges=exchanges, name=name)
+    await finder.init()
     result = await finder.find_min_max()
     file_logger.info('Invocation#{} - Found lowest ask and highest bid for {}'.format(invocation_id, ticker))
     return result
