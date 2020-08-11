@@ -9,7 +9,7 @@ setup(
     author='Ward Bradt',
     author_email='wardbradt5@gmail.com',
     packages=find_packages(),
-    install_requires=['git+git://github.com/wardbradt/networkx.git#egg=networkx',
+    install_requires=['networkx',
                       'numpy',
                       'ccxt',
                       'web3'],
